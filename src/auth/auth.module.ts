@@ -6,7 +6,6 @@ import { UserRepository } from './repositories/user.repository';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import * as config from 'config';
-import { JwtStrategy } from './strategies/jwt.strategy';
 
 const jwtConfig = config.get('jwt');
 
