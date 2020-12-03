@@ -5,17 +5,27 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class AuthCredentialsDto {
+  @ApiProperty({
+    default: 'ian',
+  })
   @IsString()
   @MinLength(3)
   @MaxLength(20)
   username: string;
 
+  @ApiProperty({
+    default: 'ian@openreport.dev',
+  })
   @IsString()
   @IsEmail()
   email: string;
 
+  @ApiProperty({
+    default: '1OpenReport.Dev',
+  })
   @IsString()
   @MinLength(8)
   @MaxLength(64)
