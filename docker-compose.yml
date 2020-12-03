@@ -20,8 +20,8 @@ services:
     container_name: openreport_pgadmin
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-ian@wij.ma}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-password}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@openreport.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
     volumes:
       - pgadmin:/root/.pgadmin
     ports:
@@ -29,11 +29,82 @@ services:
     networks:
       - postgres
     restart: unless-stopped
+  elasticsearch_01:
+    image: "elasticsearch:7.9.3"
+    container_name: openreport_elasticsearch_01
+    environment:
+      - node.name=openreport_elasticsearch_01
+      - cluster.name=openreport-elasticsearch-cluster
+      - discovery.seed_hosts=openreport_elasticsearch_02,openreport_elasticsearch_03
+      - cluster.initial_master_nodes=openreport_elasticsearch_01,openreport_elasticsearch_02,openreport_elasticsearch_03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+  elasticsearch_02:
+    image: "elasticsearch:7.9.3"
+    container_name: openreport_elasticsearch_02
+    environment:
+      - node.name=openreport_elasticsearch_02
+      - cluster.name=openreport-elasticsearch-cluster
+      - discovery.seed_hosts=openreport_elasticsearch_01,openreport_elasticsearch_03
+      - cluster.initial_master_nodes=openreport_elasticsearch_01,openreport_elasticsearch_02,openreport_elasticsearch_03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch02:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+  elasticsearch_03:
+    image: "elasticsearch:7.9.3"
+    container_name: openreport_elasticsearch_03
+    environment:
+      - node.name=openreport_elasticsearch_03
+      - cluster.name=openreport-elasticsearch-cluster
+      - discovery.seed_hosts=openreport_elasticsearch_01,openreport_elasticsearch_02
+      - cluster.initial_master_nodes=openreport_elasticsearch_01,openreport_elasticsearch_02,openreport_elasticsearch_03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch03:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+  kibana:
+    image: "kibana:7.9.3"
+    container_name: openreport_kibana
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch_01:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch_01:9200
+    ports:
+      - "3002:5601"
+    networks:
+      - elastic
 
 networks:
   postgres:
+    driver: bridge
+  elastic:
     driver: bridge
 
 volumes:
   postgres:
   pgadmin:
+  elasticsearch01:
+  elasticsearch02:
+  elasticsearch03:
